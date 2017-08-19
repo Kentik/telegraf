@@ -1,24 +1,41 @@
 # Telegraf [![Circle CI](https://circleci.com/gh/influxdata/telegraf.svg?style=svg)](https://circleci.com/gh/influxdata/telegraf) [![Docker pulls](https://img.shields.io/docker/pulls/library/telegraf.svg)](https://hub.docker.com/_/telegraf/)
 
 ---
-!WARN! - This is a kentik fork of the telegraf library which was made to accomodate for our 
-	 custom go-metrics library. This fork has a modified opentsdb.go output plugin file
-         which allows the user to exclude field keys from sanitization by telegraf ("value"). 
-	 To sync with the parent/upstream:
-
+*WARNING* 
+This is a kentik fork of the telegraf library which was made to accomodate for our 
+custom go-metrics library. This fork has a modified opentsdb.go output plugin file
+which allows the user to exclude field keys from sanitization by telegraf ("value").
+To sync with the parent/upstream:
+---
 ```
+#!/bin/bash
+
+##
+## Update the kentik fork in new branch of fork.
+## Reset the upstream, exclude diff files. Remove upstream.
+##
+
+version=$1
+
+echo "pulling most recent master branch of kentik-telegraf..."
 git clone git@github.com:Kentik/telegraf.git && \
- cd ./telegraf && \
- git remote add upstream https://github.com/influxdata/telegraf.git
+	cd ./telegraf && \
+	git remote add upstream https://github.com/influxdata/telegraf.git
 
-git checkout -b "sync_to_master_v${v}"
+echo "creating new branch to sync to master..."
+git checkout -b "sync_to_master_v${version}"
 
+echo "syncing to master..."
 git fetch upstream && \
- git merge --no-log --no-ff --no-commit upstream/branch && \
- git reset plugins/outputs/opentsdb/opentsdb.go && \
- git checkout plugins/outputs/opentsdb/opentsdb.go && \
- git reset README.md && \
- git checkout README.md 
+	git merge --no-log --no-ff --no-commit upstream/master && \
+	git reset plugins/outputs/opentsdb/opentsdb.go && \
+	git checkout plugins/outputs/opentsdb/opentsdb.go && \
+	git reset README.md && \
+	git checkout README.md \
+	git push origin 
+
+echo "setting upstream back to kentik-telegraf..."
+git remote add upstream https://github.com/Kentik/telegraf.git
 ```
 ---
 
