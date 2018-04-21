@@ -55,18 +55,8 @@ func (s *Server) gatherData(acc telegraf.Accumulator, gatherDbStats bool) error 
 		JumboChunksCount: int64(jumbo_chunks),
 	}
 
-	resultShards := &ShardStats{}
-	err = s.Session.DB("admin").Run(bson.D{
-		{
-			Name:  "shardConnPoolStats",
-			Value: 1,
-		},
-	}, &resultShards)
-	if err != nil {
-		log.Println("E! Error getting database shard stats (" + err.Error() + ")")
-	}
-
 	result_db_stats := &DbStats{}
+
 	if gatherDbStats == true {
 		names := []string{}
 		names, err = s.Session.DatabaseNames()
@@ -98,7 +88,6 @@ func (s *Server) gatherData(acc telegraf.Accumulator, gatherDbStats bool) error 
 		ReplSetStatus: result_repl,
 		ClusterStatus: result_cluster,
 		DbStats:       result_db_stats,
-		ShardStats:    resultShards,
 	}
 
 	defer func() {

@@ -43,11 +43,7 @@ The example below has two queries are specified, with the following parameters:
   # withdbname was true.
   # Be careful that if the withdbname is set to false you don't have to define
   # the where clause (aka with the dbname)
-  #
-  # the tagvalue field is used to define custom tags (separated by comas).
-  # the query is expected to return columns which match the names of the
-  # defined tags. The values in these columns must be of a string-type,
-  # a number-type or a blob-type.
+  # the tagvalue field is used to define custom tags (separated by comas)
   #
   # Structure :
   # [[inputs.postgresql_extensible.query]]
@@ -113,15 +109,6 @@ using postgreql extensions ([pg_stat_statements](http://www.postgresql.org/docs/
   version=901
   withdbname=false
   tagvalue="db"
-[[inputs.postgresql_extensible.query]]
-  sqlquery="""
-    SELECT type, (enabled || '') AS enabled, COUNT(*)
-      FROM application_users
-      GROUP BY type, enabled
-  """
-  version=901
-  withdbname=false
-  tagvalue="type,enabled"
 ```
 
 # Postgresql Side

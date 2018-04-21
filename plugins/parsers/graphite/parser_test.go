@@ -6,11 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/influxdata/telegraf/internal/templating"
 	"github.com/influxdata/telegraf/metric"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkParse(b *testing.B) {
@@ -120,7 +118,7 @@ func TestTemplateApply(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tmpl, err := templating.NewDefaultTemplateWithPattern(test.template)
+		tmpl, err := NewTemplate(test.template, nil, DefaultSeparator)
 		if errstr(err) != test.err {
 			t.Fatalf("err does not match.  expected %v, got %v", test.err, err)
 		}
@@ -129,7 +127,7 @@ func TestTemplateApply(t *testing.T) {
 			continue
 		}
 
-		measurement, tags, _, _ := tmpl.Apply(test.input, DefaultSeparator)
+		measurement, tags, _, _ := tmpl.Apply(test.input)
 		if measurement != test.measurement {
 			t.Fatalf("name parse failer.  expected %v, got %v", test.measurement, measurement)
 		}
@@ -380,7 +378,7 @@ func TestFilterMatchDefault(t *testing.T) {
 	m, err := p.ParseLine("miss.servers.localhost.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestFilterMatchMultipleMeasurement(t *testing.T) {
@@ -398,7 +396,7 @@ func TestFilterMatchMultipleMeasurement(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu.cpu_load.10 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestFilterMatchMultipleMeasurementSeparator(t *testing.T) {
@@ -417,7 +415,7 @@ func TestFilterMatchMultipleMeasurementSeparator(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu.cpu_load.10 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestFilterMatchSingle(t *testing.T) {
@@ -434,7 +432,7 @@ func TestFilterMatchSingle(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestParseNoMatch(t *testing.T) {
@@ -452,7 +450,7 @@ func TestParseNoMatch(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.memory.VmallocChunk 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestFilterMatchWildcard(t *testing.T) {
@@ -470,7 +468,7 @@ func TestFilterMatchWildcard(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestFilterMatchExactBeforeWildcard(t *testing.T) {
@@ -490,7 +488,7 @@ func TestFilterMatchExactBeforeWildcard(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestFilterMatchMostLongestFilter(t *testing.T) {
@@ -509,13 +507,8 @@ func TestFilterMatchMostLongestFilter(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	value, ok := m.GetTag("host")
-	require.True(t, ok)
-	require.Equal(t, "localhost", value)
-
-	value, ok = m.GetTag("resource")
-	require.True(t, ok)
-	require.Equal(t, "cpu", value)
+	assert.Contains(t, m.String(), ",host=localhost")
+	assert.Contains(t, m.String(), ",resource=cpu")
 }
 
 func TestFilterMatchMultipleWildcards(t *testing.T) {
@@ -539,7 +532,7 @@ func TestFilterMatchMultipleWildcards(t *testing.T) {
 	m, err := p.ParseLine("servers.server01.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, m)
+	assert.Equal(t, exp.String(), m.String())
 }
 
 func TestParseDefaultTags(t *testing.T) {
@@ -555,17 +548,9 @@ func TestParseDefaultTags(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	value, ok := m.GetTag("host")
-	require.True(t, ok)
-	require.Equal(t, "localhost", value)
-
-	value, ok = m.GetTag("region")
-	require.True(t, ok)
-	require.Equal(t, "us-east", value)
-
-	value, ok = m.GetTag("zone")
-	require.True(t, ok)
-	require.Equal(t, "1c", value)
+	assert.Contains(t, m.String(), ",host=localhost")
+	assert.Contains(t, m.String(), ",region=us-east")
+	assert.Contains(t, m.String(), ",zone=1c")
 }
 
 func TestParseDefaultTemplateTags(t *testing.T) {
@@ -580,17 +565,9 @@ func TestParseDefaultTemplateTags(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	value, ok := m.GetTag("host")
-	require.True(t, ok)
-	require.Equal(t, "localhost", value)
-
-	value, ok = m.GetTag("region")
-	require.True(t, ok)
-	require.Equal(t, "us-east", value)
-
-	value, ok = m.GetTag("zone")
-	require.True(t, ok)
-	require.Equal(t, "1c", value)
+	assert.Contains(t, m.String(), ",host=localhost")
+	assert.Contains(t, m.String(), ",region=us-east")
+	assert.Contains(t, m.String(), ",zone=1c")
 }
 
 func TestParseDefaultTemplateTagsOverridGlobal(t *testing.T) {
@@ -603,20 +580,11 @@ func TestParseDefaultTemplateTagsOverridGlobal(t *testing.T) {
 	}
 
 	m, err := p.ParseLine("servers.localhost.cpu_load 11 1435077219")
-	_ = m
 	assert.NoError(t, err)
 
-	value, ok := m.GetTag("host")
-	require.True(t, ok)
-	require.Equal(t, "localhost", value)
-
-	value, ok = m.GetTag("region")
-	require.True(t, ok)
-	require.Equal(t, "us-east", value)
-
-	value, ok = m.GetTag("zone")
-	require.True(t, ok)
-	require.Equal(t, "1c", value)
+	assert.Contains(t, m.String(), ",host=localhost")
+	assert.Contains(t, m.String(), ",region=us-east")
+	assert.Contains(t, m.String(), ",zone=1c")
 }
 
 func TestParseTemplateWhitespace(t *testing.T) {
@@ -633,17 +601,9 @@ func TestParseTemplateWhitespace(t *testing.T) {
 	m, err := p.ParseLine("servers.localhost.cpu_load 11 1435077219")
 	assert.NoError(t, err)
 
-	value, ok := m.GetTag("host")
-	require.True(t, ok)
-	require.Equal(t, "localhost", value)
-
-	value, ok = m.GetTag("region")
-	require.True(t, ok)
-	require.Equal(t, "us-east", value)
-
-	value, ok = m.GetTag("zone")
-	require.True(t, ok)
-	require.Equal(t, "1c", value)
+	assert.Contains(t, m.String(), ",host=localhost")
+	assert.Contains(t, m.String(), ",region=us-east")
+	assert.Contains(t, m.String(), ",zone=1c")
 }
 
 // Test basic functionality of ApplyTemplate

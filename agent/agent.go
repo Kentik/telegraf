@@ -143,7 +143,7 @@ func (a *Agent) gatherer(
 func gatherWithTimeout(
 	shutdown chan struct{},
 	input *models.RunningInput,
-	acc telegraf.Accumulator,
+	acc *accumulator,
 	timeout time.Duration,
 ) {
 	ticker := time.NewTicker(timeout)
@@ -252,7 +252,7 @@ func (a *Agent) flusher(shutdown chan struct{}, metricC chan telegraf.Metric, ag
 	// the flusher will flush after metrics are collected.
 	time.Sleep(time.Millisecond * 300)
 
-	// create an output metric channel and a gorouting that continuously passes
+	// create an output metric channel and a gorouting that continously passes
 	// each metric onto the output plugins & aggregators.
 	outMetricC := make(chan telegraf.Metric, 100)
 	var wg sync.WaitGroup
@@ -271,9 +271,11 @@ func (a *Agent) flusher(shutdown chan struct{}, metricC chan telegraf.Metric, ag
 				// if dropOriginal is set to true, then we will only send this
 				// metric to the aggregators, not the outputs.
 				var dropOriginal bool
-				for _, agg := range a.Config.Aggregators {
-					if ok := agg.Add(m.Copy()); ok {
-						dropOriginal = true
+				if !m.IsAggregate() {
+					for _, agg := range a.Config.Aggregators {
+						if ok := agg.Add(m.Copy()); ok {
+							dropOriginal = true
+						}
 					}
 				}
 				if !dropOriginal {
@@ -306,13 +308,7 @@ func (a *Agent) flusher(shutdown chan struct{}, metricC chan telegraf.Metric, ag
 					metrics = processor.Apply(metrics...)
 				}
 				for _, m := range metrics {
-					for i, o := range a.Config.Outputs {
-						if i == len(a.Config.Outputs)-1 {
-							o.AddMetric(m)
-						} else {
-							o.AddMetric(m.Copy())
-						}
-					}
+					outMetricC <- m
 				}
 			}
 		}
@@ -368,6 +364,8 @@ func (a *Agent) Run(shutdown chan struct{}) error {
 	metricC := make(chan telegraf.Metric, 100)
 	aggC := make(chan telegraf.Metric, 100)
 
+	now := time.Now()
+
 	// Start all ServicePlugins
 	for _, input := range a.Config.Inputs {
 		input.SetDefaultTags(a.Config.Tags)
@@ -408,7 +406,7 @@ func (a *Agent) Run(shutdown chan struct{}) error {
 			acc := NewAccumulator(agg, aggC)
 			acc.SetPrecision(a.Config.Agent.Precision.Duration,
 				a.Config.Agent.Interval.Duration)
-			agg.Run(acc, shutdown)
+			agg.Run(acc, now, shutdown)
 		}(aggregator)
 	}
 

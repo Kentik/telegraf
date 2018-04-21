@@ -87,7 +87,7 @@ func NewRunningOutput(
 			map[string]string{"output": name},
 		),
 	}
-	ro.BufferLimit.Set(int64(ro.MetricBufferLimit))
+	ro.BufferLimit.Incr(int64(ro.MetricBufferLimit))
 	return ro
 }
 

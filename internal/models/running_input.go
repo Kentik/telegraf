@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/plugins/serializers/influx"
 	"github.com/influxdata/telegraf/selfstat"
 )
 
@@ -76,11 +75,7 @@ func (r *RunningInput) MakeMetric(
 	)
 
 	if r.trace && m != nil {
-		s := influx.NewSerializer()
-		octets, err := s.Serialize(m)
-		if err == nil {
-			fmt.Print("> " + string(octets))
-		}
+		fmt.Print("> " + m.String())
 	}
 
 	r.MetricsGathered.Incr(1)

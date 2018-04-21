@@ -54,7 +54,7 @@ var sampleConfig = `
   ## By default, some of the fields are renamed from what haproxy calls them.
   ## Setting this option to true results in the plugin keeping the original
   ## field names.
-  # keep_field_names = false
+  # keep_field_names = true
 
   ## Optional SSL Config
   # ssl_ca = "/etc/telegraf/ca.pem"

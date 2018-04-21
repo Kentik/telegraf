@@ -41,8 +41,6 @@ const sampleConfig = `
   data_format = "influx"
 `
 
-const MaxStderrBytes = 512
-
 type Exec struct {
 	Commands []string
 	Command  string
@@ -98,41 +96,15 @@ func (c CommandRunner) Run(
 
 	cmd := exec.Command(split_cmd[0], split_cmd[1:]...)
 
-	var (
-		out    bytes.Buffer
-		stderr bytes.Buffer
-	)
+	var out bytes.Buffer
 	cmd.Stdout = &out
-	cmd.Stderr = &stderr
 
 	if err := internal.RunTimeout(cmd, e.Timeout.Duration); err != nil {
 		switch e.parser.(type) {
 		case *nagios.NagiosParser:
 			AddNagiosState(err, acc)
 		default:
-			var errMessage = ""
-			if stderr.Len() > 0 {
-				stderr = removeCarriageReturns(stderr)
-				// Limit the number of bytes.
-				didTruncate := false
-				if stderr.Len() > MaxStderrBytes {
-					stderr.Truncate(MaxStderrBytes)
-					didTruncate = true
-				}
-				if i := bytes.IndexByte(stderr.Bytes(), '\n'); i > 0 {
-					// Only show truncation if the newline wasn't the last character.
-					if i < stderr.Len()-1 {
-						didTruncate = true
-					}
-					stderr.Truncate(i)
-				}
-				if didTruncate {
-					stderr.WriteString("...")
-				}
-
-				errMessage = fmt.Sprintf(": %s", stderr.String())
-			}
-			return nil, fmt.Errorf("exec: %s for command '%s'%s", err, command, errMessage)
+			return nil, fmt.Errorf("exec: %s for command '%s'", err, command)
 		}
 	} else {
 		switch e.parser.(type) {

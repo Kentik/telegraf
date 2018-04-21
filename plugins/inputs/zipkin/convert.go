@@ -1,8 +1,6 @@
 package zipkin
 
 import (
-	"strings"
-
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs/zipkin/trace"
 )
@@ -30,13 +28,12 @@ func (l *LineProtocolConverter) Record(t trace.Trace) error {
 		fields := map[string]interface{}{
 			"duration_ns": s.Duration.Nanoseconds(),
 		}
-
 		tags := map[string]string{
 			"id":           s.ID,
 			"parent_id":    s.ParentID,
 			"trace_id":     s.TraceID,
-			"name":         formatName(s.Name),
-			"service_name": formatName(s.ServiceName),
+			"name":         s.Name,
+			"service_name": s.ServiceName,
 		}
 		l.acc.AddFields("zipkin", fields, tags, s.Timestamp)
 
@@ -45,8 +42,8 @@ func (l *LineProtocolConverter) Record(t trace.Trace) error {
 				"id":            s.ID,
 				"parent_id":     s.ParentID,
 				"trace_id":      s.TraceID,
-				"name":          formatName(s.Name),
-				"service_name":  formatName(a.ServiceName),
+				"name":          s.Name,
+				"service_name":  a.ServiceName,
 				"annotation":    a.Value,
 				"endpoint_host": a.Host,
 			}
@@ -58,8 +55,8 @@ func (l *LineProtocolConverter) Record(t trace.Trace) error {
 				"id":             s.ID,
 				"parent_id":      s.ParentID,
 				"trace_id":       s.TraceID,
-				"name":           formatName(s.Name),
-				"service_name":   formatName(b.ServiceName),
+				"name":           s.Name,
+				"service_name":   b.ServiceName,
 				"annotation":     b.Value,
 				"endpoint_host":  b.Host,
 				"annotation_key": b.Key,
@@ -73,11 +70,4 @@ func (l *LineProtocolConverter) Record(t trace.Trace) error {
 
 func (l *LineProtocolConverter) Error(err error) {
 	l.acc.AddError(err)
-}
-
-// formatName formats name and service name
-// Zipkin forces span and service names to be lowercase:
-// https://github.com/openzipkin/zipkin/pull/805
-func formatName(name string) string {
-	return strings.ToLower(name)
 }

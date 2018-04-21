@@ -39,9 +39,6 @@ type AMQP struct {
 	Precision string
 	// Connection timeout
 	Timeout internal.Duration
-	// Delivery Mode controls if a published message is persistent
-	// Valid options are "transient" and "persistent". default: "transient"
-	DeliveryMode string
 
 	// Path to CA file
 	SSLCA string `toml:"ssl_ca"`
@@ -55,8 +52,7 @@ type AMQP struct {
 	sync.Mutex
 	c *client
 
-	deliveryMode uint8
-	serializer   serializers.Serializer
+	serializer serializers.Serializer
 }
 
 type externalAuth struct{}
@@ -86,9 +82,6 @@ var sampleConfig = `
   ## Telegraf tag to use as a routing key
   ##  ie, if this tag exists, its value will be used as the routing key
   routing_tag = "host"
-  ## Delivery Mode controls if a published message is persistent
-  ## Valid options are "transient" and "persistent". default: "transient"
-  delivery_mode = "transient"
 
   ## InfluxDB retention policy
   # retention_policy = "default"
@@ -118,18 +111,6 @@ func (a *AMQP) SetSerializer(serializer serializers.Serializer) {
 }
 
 func (q *AMQP) Connect() error {
-	switch q.DeliveryMode {
-	case "transient":
-		q.deliveryMode = amqp.Transient
-		break
-	case "persistent":
-		q.deliveryMode = amqp.Persistent
-		break
-	default:
-		q.deliveryMode = amqp.Transient
-		break
-	}
-
 	headers := amqp.Table{
 		"database":         q.Database,
 		"retention_policy": q.RetentionPolicy,
@@ -264,10 +245,9 @@ func (q *AMQP) Write(metrics []telegraf.Metric) error {
 			false,      // mandatory
 			false,      // immediate
 			amqp.Publishing{
-				Headers:      c.headers,
-				ContentType:  "text/plain",
-				Body:         buf,
-				DeliveryMode: q.deliveryMode,
+				Headers:     c.headers,
+				ContentType: "text/plain",
+				Body:        buf,
 			})
 		if err != nil {
 			return fmt.Errorf("Failed to send AMQP message: %s", err)

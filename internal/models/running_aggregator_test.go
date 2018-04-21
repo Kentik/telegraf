@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -23,7 +24,7 @@ func TestAdd(t *testing.T) {
 	})
 	assert.NoError(t, ra.Config.Filter.Compile())
 	acc := testutil.Accumulator{}
-	go ra.Run(&acc, make(chan struct{}))
+	go ra.Run(&acc, time.Now(), make(chan struct{}))
 
 	m := ra.MakeMetric(
 		"RITest",
@@ -54,7 +55,7 @@ func TestAddMetricsOutsideCurrentPeriod(t *testing.T) {
 	})
 	assert.NoError(t, ra.Config.Filter.Compile())
 	acc := testutil.Accumulator{}
-	go ra.Run(&acc, make(chan struct{}))
+	go ra.Run(&acc, time.Now(), make(chan struct{}))
 
 	// metric before current period
 	m := ra.MakeMetric(
@@ -112,7 +113,7 @@ func TestAddAndPushOnePeriod(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ra.Run(&acc, shutdown)
+		ra.Run(&acc, time.Now(), shutdown)
 	}()
 
 	m := ra.MakeMetric(
@@ -164,6 +165,69 @@ func TestAddDropOriginal(t *testing.T) {
 		time.Now(),
 	)
 	assert.False(t, ra.Add(m2))
+}
+
+// make an untyped, counter, & gauge metric
+func TestMakeMetricA(t *testing.T) {
+	now := time.Now()
+	ra := NewRunningAggregator(&TestAggregator{}, &AggregatorConfig{
+		Name: "TestRunningAggregator",
+	})
+	assert.Equal(t, "aggregators.TestRunningAggregator", ra.Name())
+
+	m := ra.MakeMetric(
+		"RITest",
+		map[string]interface{}{"value": int(101)},
+		map[string]string{},
+		telegraf.Untyped,
+		now,
+	)
+	assert.Equal(
+		t,
+		fmt.Sprintf("RITest value=101i %d\n", now.UnixNano()),
+		m.String(),
+	)
+	assert.Equal(
+		t,
+		m.Type(),
+		telegraf.Untyped,
+	)
+
+	m = ra.MakeMetric(
+		"RITest",
+		map[string]interface{}{"value": int(101)},
+		map[string]string{},
+		telegraf.Counter,
+		now,
+	)
+	assert.Equal(
+		t,
+		fmt.Sprintf("RITest value=101i %d\n", now.UnixNano()),
+		m.String(),
+	)
+	assert.Equal(
+		t,
+		m.Type(),
+		telegraf.Counter,
+	)
+
+	m = ra.MakeMetric(
+		"RITest",
+		map[string]interface{}{"value": int(101)},
+		map[string]string{},
+		telegraf.Gauge,
+		now,
+	)
+	assert.Equal(
+		t,
+		fmt.Sprintf("RITest value=101i %d\n", now.UnixNano()),
+		m.String(),
+	)
+	assert.Equal(
+		t,
+		m.Type(),
+		telegraf.Gauge,
+	)
 }
 
 type TestAggregator struct {

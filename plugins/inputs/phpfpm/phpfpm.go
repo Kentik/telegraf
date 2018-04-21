@@ -148,11 +148,11 @@ func (g *phpfpm) gatherServer(addr string, acc telegraf.Accumulator) error {
 		return err
 	}
 
-	return g.gatherFcgi(fcgi, statusPath, acc, addr)
+	return g.gatherFcgi(fcgi, statusPath, acc)
 }
 
 // Gather stat using fcgi protocol
-func (g *phpfpm) gatherFcgi(fcgi *conn, statusPath string, acc telegraf.Accumulator, addr string) error {
+func (g *phpfpm) gatherFcgi(fcgi *conn, statusPath string, acc telegraf.Accumulator) error {
 	fpmOutput, fpmErr, err := fcgi.Request(map[string]string{
 		"SCRIPT_NAME":     "/" + statusPath,
 		"SCRIPT_FILENAME": statusPath,
@@ -164,7 +164,7 @@ func (g *phpfpm) gatherFcgi(fcgi *conn, statusPath string, acc telegraf.Accumula
 	}, "/"+statusPath)
 
 	if len(fpmErr) == 0 && err == nil {
-		importMetric(bytes.NewReader(fpmOutput), acc, addr)
+		importMetric(bytes.NewReader(fpmOutput), acc)
 		return nil
 	} else {
 		return fmt.Errorf("Unable parse phpfpm status. Error: %v %v", string(fpmErr), err)
@@ -192,12 +192,12 @@ func (g *phpfpm) gatherHttp(addr string, acc telegraf.Accumulator) error {
 			addr, err)
 	}
 
-	importMetric(res.Body, acc, addr)
+	importMetric(res.Body, acc)
 	return nil
 }
 
 // Import stat data into Telegraf system
-func importMetric(r io.Reader, acc telegraf.Accumulator, addr string) (poolStat, error) {
+func importMetric(r io.Reader, acc telegraf.Accumulator) (poolStat, error) {
 	stats := make(poolStat)
 	var currentPool string
 
@@ -240,7 +240,6 @@ func importMetric(r io.Reader, acc telegraf.Accumulator, addr string) (poolStat,
 	for pool := range stats {
 		tags := map[string]string{
 			"pool": pool,
-			"url":  addr,
 		}
 		fields := make(map[string]interface{})
 		for k, v := range stats[pool] {

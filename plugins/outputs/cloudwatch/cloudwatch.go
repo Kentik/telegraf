@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/influxdata/telegraf"
 	internalaws "github.com/influxdata/telegraf/internal/config/aws"
@@ -72,20 +71,21 @@ func (c *CloudWatch) Connect() error {
 	}
 	configProvider := credentialConfig.Credentials()
 
-	stsService := sts.New(configProvider)
+	svc := cloudwatch.New(configProvider)
 
-	params := &sts.GetCallerIdentityInput{}
-
-	_, err := stsService.GetCallerIdentity(params)
-
-	if err != nil {
-		log.Printf("E! cloudwatch: Cannot use credentials to connect to AWS : %+v \n", err.Error())
-		return err
+	params := &cloudwatch.ListMetricsInput{
+		Namespace: aws.String(c.Namespace),
 	}
 
-	c.svc = cloudwatch.New(configProvider)
+	_, err := svc.ListMetrics(params) // Try a read-only call to test connection.
 
-	return nil
+	if err != nil {
+		log.Printf("E! cloudwatch: Error in ListMetrics API call : %+v \n", err.Error())
+	}
+
+	c.svc = svc
+
+	return err
 }
 
 func (c *CloudWatch) Close() error {
