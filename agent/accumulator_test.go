@@ -15,36 +15,63 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAddFields(t *testing.T) {
+func TestAdd(t *testing.T) {
+	now := time.Now()
 	metrics := make(chan telegraf.Metric, 10)
 	defer close(metrics)
 	a := NewAccumulator(&TestMetricMaker{}, metrics)
 
-	tags := map[string]string{"foo": "bar"}
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+
+	testm := <-metrics
+	actual := testm.String()
+	assert.Contains(t, actual, "acctest value=101")
+
+	testm = <-metrics
+	actual = testm.String()
+	assert.Contains(t, actual, "acctest,acc=test value=101")
+
+	testm = <-metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", now.UnixNano()),
+		actual)
+}
+
+func TestAddFields(t *testing.T) {
+	now := time.Now()
+	metrics := make(chan telegraf.Metric, 10)
+	defer close(metrics)
+	a := NewAccumulator(&TestMetricMaker{}, metrics)
+
 	fields := map[string]interface{}{
 		"usage": float64(99),
 	}
-	now := time.Now()
-	a.AddCounter("acctest", fields, tags, now)
+	a.AddFields("acctest", fields, map[string]string{})
+	a.AddGauge("acctest", fields, map[string]string{"acc": "test"})
+	a.AddCounter("acctest", fields, map[string]string{"acc": "test"}, now)
 
 	testm := <-metrics
+	actual := testm.String()
+	assert.Contains(t, actual, "acctest usage=99")
 
-	require.Equal(t, "acctest", testm.Name())
-	actual, ok := testm.GetField("usage")
+	testm = <-metrics
+	actual = testm.String()
+	assert.Contains(t, actual, "acctest,acc=test usage=99")
 
-	require.True(t, ok)
-	require.Equal(t, float64(99), actual)
-
-	actual, ok = testm.GetTag("foo")
-	require.True(t, ok)
-	require.Equal(t, "bar", actual)
-
-	tm := testm.Time()
-	// okay if monotonic clock differs
-	require.True(t, now.Equal(tm))
-
-	tp := testm.Type()
-	require.Equal(t, telegraf.Counter, tp)
+	testm = <-metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test usage=99 %d\n", now.UnixNano()),
+		actual)
 }
 
 func TestAccAddError(t *testing.T) {
@@ -71,61 +98,215 @@ func TestAccAddError(t *testing.T) {
 	assert.Contains(t, string(errs[2]), "baz")
 }
 
-func TestSetPrecision(t *testing.T) {
-	tests := []struct {
-		name      string
-		unset     bool
-		precision time.Duration
-		interval  time.Duration
-		timestamp time.Time
-		expected  time.Time
-	}{
-		{
-			name:      "default precision is nanosecond",
-			unset:     true,
-			timestamp: time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC),
-			expected:  time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC),
-		},
-		{
-			name:      "second interval",
-			interval:  time.Second,
-			timestamp: time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC),
-			expected:  time.Date(2006, time.February, 10, 12, 0, 0, 0, time.UTC),
-		},
-		{
-			name:      "microsecond interval",
-			interval:  time.Microsecond,
-			timestamp: time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC),
-			expected:  time.Date(2006, time.February, 10, 12, 0, 0, 82913000, time.UTC),
-		},
-		{
-			name:      "2 second precision",
-			precision: 2 * time.Second,
-			timestamp: time.Date(2006, time.February, 10, 12, 0, 2, 4, time.UTC),
-			expected:  time.Date(2006, time.February, 10, 12, 0, 2, 0, time.UTC),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			metrics := make(chan telegraf.Metric, 10)
+func TestAddNoIntervalWithPrecision(t *testing.T) {
+	now := time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC)
+	metrics := make(chan telegraf.Metric, 10)
+	defer close(metrics)
+	a := NewAccumulator(&TestMetricMaker{}, metrics)
+	a.SetPrecision(0, time.Second)
 
-			a := NewAccumulator(&TestMetricMaker{}, metrics)
-			if !tt.unset {
-				a.SetPrecision(tt.precision, tt.interval)
-			}
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
 
-			a.AddFields("acctest",
-				map[string]interface{}{"value": float64(101)},
-				map[string]string{},
-				tt.timestamp,
-			)
+	testm := <-a.metrics
+	actual := testm.String()
+	assert.Contains(t, actual, "acctest value=101")
 
-			testm := <-metrics
-			require.Equal(t, tt.expected, testm.Time())
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Contains(t, actual, "acctest,acc=test value=101")
 
-			close(metrics)
-		})
-	}
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", int64(1139572800000000000)),
+		actual)
+}
+
+func TestAddDisablePrecision(t *testing.T) {
+	now := time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC)
+	metrics := make(chan telegraf.Metric, 10)
+	defer close(metrics)
+	a := NewAccumulator(&TestMetricMaker{}, metrics)
+
+	a.SetPrecision(time.Nanosecond, 0)
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+
+	testm := <-a.metrics
+	actual := testm.String()
+	assert.Contains(t, actual, "acctest value=101")
+
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Contains(t, actual, "acctest,acc=test value=101")
+
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", int64(1139572800082912748)),
+		actual)
+}
+
+func TestAddNoPrecisionWithInterval(t *testing.T) {
+	now := time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC)
+	metrics := make(chan telegraf.Metric, 10)
+	defer close(metrics)
+	a := NewAccumulator(&TestMetricMaker{}, metrics)
+
+	a.SetPrecision(0, time.Second)
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"})
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+
+	testm := <-a.metrics
+	actual := testm.String()
+	assert.Contains(t, actual, "acctest value=101")
+
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Contains(t, actual, "acctest,acc=test value=101")
+
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", int64(1139572800000000000)),
+		actual)
+}
+
+func TestDifferentPrecisions(t *testing.T) {
+	now := time.Date(2006, time.February, 10, 12, 0, 0, 82912748, time.UTC)
+	metrics := make(chan telegraf.Metric, 10)
+	defer close(metrics)
+	a := NewAccumulator(&TestMetricMaker{}, metrics)
+
+	a.SetPrecision(0, time.Second)
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+	testm := <-a.metrics
+	actual := testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", int64(1139572800000000000)),
+		actual)
+
+	a.SetPrecision(0, time.Millisecond)
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", int64(1139572800083000000)),
+		actual)
+
+	a.SetPrecision(0, time.Microsecond)
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", int64(1139572800082913000)),
+		actual)
+
+	a.SetPrecision(0, time.Nanosecond)
+	a.AddFields("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+	testm = <-a.metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", int64(1139572800082912748)),
+		actual)
+}
+
+func TestAddGauge(t *testing.T) {
+	now := time.Now()
+	metrics := make(chan telegraf.Metric, 10)
+	defer close(metrics)
+	a := NewAccumulator(&TestMetricMaker{}, metrics)
+
+	a.AddGauge("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{})
+	a.AddGauge("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"})
+	a.AddGauge("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+
+	testm := <-metrics
+	actual := testm.String()
+	assert.Contains(t, actual, "acctest value=101")
+	assert.Equal(t, testm.Type(), telegraf.Gauge)
+
+	testm = <-metrics
+	actual = testm.String()
+	assert.Contains(t, actual, "acctest,acc=test value=101")
+	assert.Equal(t, testm.Type(), telegraf.Gauge)
+
+	testm = <-metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", now.UnixNano()),
+		actual)
+	assert.Equal(t, testm.Type(), telegraf.Gauge)
+}
+
+func TestAddCounter(t *testing.T) {
+	now := time.Now()
+	metrics := make(chan telegraf.Metric, 10)
+	defer close(metrics)
+	a := NewAccumulator(&TestMetricMaker{}, metrics)
+
+	a.AddCounter("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{})
+	a.AddCounter("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"})
+	a.AddCounter("acctest",
+		map[string]interface{}{"value": float64(101)},
+		map[string]string{"acc": "test"}, now)
+
+	testm := <-metrics
+	actual := testm.String()
+	assert.Contains(t, actual, "acctest value=101")
+	assert.Equal(t, testm.Type(), telegraf.Counter)
+
+	testm = <-metrics
+	actual = testm.String()
+	assert.Contains(t, actual, "acctest,acc=test value=101")
+	assert.Equal(t, testm.Type(), telegraf.Counter)
+
+	testm = <-metrics
+	actual = testm.String()
+	assert.Equal(t,
+		fmt.Sprintf("acctest,acc=test value=101 %d\n", now.UnixNano()),
+		actual)
+	assert.Equal(t, testm.Type(), telegraf.Counter)
 }
 
 type TestMetricMaker struct {

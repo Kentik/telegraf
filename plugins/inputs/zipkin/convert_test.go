@@ -115,7 +115,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"parent_id":    "22964302721410078",
 						"trace_id":     "2505404965370368069",
 						"service_name": "trivial",
-						"name":         "child",
+						"name":         "Child",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(53106) * time.Microsecond).Nanoseconds(),
@@ -128,7 +128,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"id":             "8090652509916334619",
 						"parent_id":      "22964302721410078",
 						"trace_id":       "2505404965370368069",
-						"name":           "child",
+						"name":           "Child",
 						"service_name":   "trivial",
 						"annotation":     "dHJpdmlhbA==",
 						"endpoint_host":  "2130706433:0",
@@ -146,7 +146,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"parent_id":    "22964302721410078",
 						"trace_id":     "2505404965370368069",
 						"service_name": "trivial",
-						"name":         "child",
+						"name":         "Child",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(50410) * time.Microsecond).Nanoseconds(),
@@ -159,7 +159,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"id":             "103618986556047333",
 						"parent_id":      "22964302721410078",
 						"trace_id":       "2505404965370368069",
-						"name":           "child",
+						"name":           "Child",
 						"service_name":   "trivial",
 						"annotation":     "dHJpdmlhbA==",
 						"endpoint_host":  "2130706433:0",
@@ -177,7 +177,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"parent_id":    "22964302721410078",
 						"trace_id":     "2505404965370368069",
 						"service_name": "trivial",
-						"name":         "parent",
+						"name":         "Parent",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
@@ -193,7 +193,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"id":            "22964302721410078",
 						"parent_id":     "22964302721410078",
 						"trace_id":      "2505404965370368069",
-						"name":          "parent",
+						"name":          "Parent",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
@@ -209,7 +209,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"id":            "22964302721410078",
 						"parent_id":     "22964302721410078",
 						"trace_id":      "2505404965370368069",
-						"name":          "parent",
+						"name":          "Parent",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
@@ -221,7 +221,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 					Tags: map[string]string{
 						"parent_id":     "22964302721410078",
 						"trace_id":      "2505404965370368069",
-						"name":          "parent",
+						"name":          "Parent",
 						"service_name":  "trivial",
 						"annotation":    "A Log",
 						"endpoint_host": "2130706433:0",
@@ -241,7 +241,7 @@ func TestLineProtocolConverter_Record(t *testing.T) {
 						"annotation_key": "lc",
 						"id":             "22964302721410078",
 						"parent_id":      "22964302721410078",
-						"name":           "parent",
+						"name":           "Parent",
 						"endpoint_host":  "2130706433:0",
 					},
 					Fields: map[string]interface{}{

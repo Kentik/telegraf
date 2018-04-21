@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/internal"
@@ -25,9 +24,6 @@ var sampleConfig = `
   ## username and password to connect MQTT server.
   # username = "telegraf"
   # password = "metricsmetricsmetricsmetrics"
-
-  ## Timeout for write operations. default: 5s
-  # timeout = "5s"
 
   ## client ID, if not set a random ID is generated
   # client_id = ""
@@ -138,7 +134,8 @@ func (m *MQTT) Write(metrics []telegraf.Metric) error {
 
 		buf, err := m.serializer.Serialize(metric)
 		if err != nil {
-			return err
+			return fmt.Errorf("MQTT Could not serialize metric: %s",
+				metric.String())
 		}
 
 		err = m.publish(topic, buf)
@@ -152,7 +149,7 @@ func (m *MQTT) Write(metrics []telegraf.Metric) error {
 
 func (m *MQTT) publish(topic string, body []byte) error {
 	token := m.client.Publish(topic, byte(m.QoS), false, body)
-	token.WaitTimeout(m.Timeout.Duration)
+	token.Wait()
 	if token.Error() != nil {
 		return token.Error()
 	}
@@ -161,12 +158,6 @@ func (m *MQTT) publish(topic string, body []byte) error {
 
 func (m *MQTT) createOpts() (*paho.ClientOptions, error) {
 	opts := paho.NewClientOptions()
-	opts.KeepAlive = 0 * time.Second
-
-	if m.Timeout.Duration < time.Second {
-		m.Timeout.Duration = 5 * time.Second
-	}
-	opts.WriteTimeout = m.Timeout.Duration
 
 	if m.ClientID != "" {
 		opts.SetClientID(m.ClientID)

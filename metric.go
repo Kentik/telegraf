@@ -13,54 +13,50 @@ const (
 	Counter
 	Gauge
 	Untyped
-	Summary
-	Histogram
 )
 
-type Tag struct {
-	Key   string
-	Value string
-}
-
-type Field struct {
-	Key   string
-	Value interface{}
-}
-
 type Metric interface {
-	// Getting data structure functions
-	Name() string
-	Tags() map[string]string
-	TagList() []*Tag
-	Fields() map[string]interface{}
-	FieldList() []*Field
-	Time() time.Time
-	Type() ValueType
-
-	// Name functions
-	SetName(name string)
-	AddPrefix(prefix string)
-	AddSuffix(suffix string)
+	// Serialize serializes the metric into a line-protocol byte buffer,
+	// including a newline at the end.
+	Serialize() []byte
+	// same as Serialize, but avoids an allocation.
+	// returns number of bytes copied into dst.
+	SerializeTo(dst []byte) int
+	// String is the same as Serialize, but returns a string.
+	String() string
+	// Copy deep-copies the metric.
+	Copy() Metric
+	// Split will attempt to return multiple metrics with the same timestamp
+	// whose string representations are no longer than maxSize.
+	// Metrics with a single field may exceed the requested size.
+	Split(maxSize int) []Metric
 
 	// Tag functions
-	GetTag(key string) (string, bool)
 	HasTag(key string) bool
 	AddTag(key, value string)
 	RemoveTag(key string)
 
 	// Field functions
-	GetField(key string) (interface{}, bool)
 	HasField(key string) bool
 	AddField(key string, value interface{})
-	RemoveField(key string)
+	RemoveField(key string) error
 
-	// HashID returns an unique identifier for the series.
+	// Name functions
+	SetName(name string)
+	SetPrefix(prefix string)
+	SetSuffix(suffix string)
+
+	// Getting data structure functions
+	Name() string
+	Tags() map[string]string
+	Fields() map[string]interface{}
+	Time() time.Time
+	UnixNano() int64
+	Type() ValueType
+	Len() int // returns the length of the serialized metric, including newline
 	HashID() uint64
 
-	// Copy returns a deep copy of the Metric.
-	Copy() Metric
-
-	// Mark Metric as an aggregate
+	// aggregator things:
 	SetAggregate(bool)
 	IsAggregate() bool
 }

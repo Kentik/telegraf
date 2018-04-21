@@ -7,13 +7,12 @@ import (
 	"encoding/binary"
 	ejson "encoding/json"
 	"fmt"
+	"github.com/influxdata/telegraf"
+	"github.com/influxdata/telegraf/plugins/outputs"
 	"io"
 	"math"
 	"net"
 	"os"
-
-	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/plugins/outputs"
 )
 
 const (
@@ -213,7 +212,7 @@ func serialize(metric telegraf.Metric) ([]string, error) {
 
 	m := make(map[string]interface{})
 	m["version"] = "1.1"
-	m["timestamp"] = metric.Time().UnixNano() / 1000000000
+	m["timestamp"] = metric.UnixNano() / 1000000000
 	m["short_message"] = "telegraf"
 	m["name"] = metric.Name()
 

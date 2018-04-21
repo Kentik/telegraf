@@ -97,7 +97,7 @@ func (d *Datadog) Write(metrics []telegraf.Metric) error {
 				metricCounter++
 			}
 		} else {
-			log.Printf("I! unable to build Metric for %s due to error '%v', skipping\n", m.Name(), err)
+			log.Printf("I! unable to build Metric for %s, skipping\n", m.Name())
 		}
 	}
 
@@ -150,7 +150,7 @@ func buildMetrics(m telegraf.Metric) (map[string]Point, error) {
 		}
 		var p Point
 		if err := p.setValue(v); err != nil {
-			return ms, fmt.Errorf("unable to extract value from Fields %v error %v", k, err.Error())
+			return ms, fmt.Errorf("unable to extract value from Fields, %s", err.Error())
 		}
 		p[0] = float64(m.Time().Unix())
 		ms[k] = p
@@ -189,11 +189,6 @@ func (p *Point) setValue(v interface{}) error {
 		p[1] = float64(d)
 	case float64:
 		p[1] = float64(d)
-	case bool:
-		p[1] = float64(0)
-		if d {
-			p[1] = float64(1)
-		}
 	default:
 		return fmt.Errorf("undeterminable type")
 	}

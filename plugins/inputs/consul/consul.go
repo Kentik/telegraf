@@ -31,28 +31,19 @@ type Consul struct {
 }
 
 var sampleConfig = `
-  ## Consul server address
+  ## Most of these values defaults to the one configured on a Consul's agent level.
+  ## Optional Consul server address (default: "localhost")
   # address = "localhost"
-
-  ## URI scheme for the Consul server, one of "http", "https"
+  ## Optional URI scheme for the Consul server (default: "http")
   # scheme = "http"
-
-  ## ACL token used in every request
+  ## Optional ACL token used in every request (default: "")
   # token = ""
-
-  ## HTTP Basic Authentication username and password.
+  ## Optional username used for request HTTP Basic Authentication (default: "")
   # username = ""
+  ## Optional password used for HTTP Basic Authentication (default: "")
   # password = ""
-
-  ## Data centre to query the health checks from
+  ## Optional data centre to query the health checks from (default: "")
   # datacentre = ""
-
-  ## SSL Config
-  # ssl_ca = "/etc/telegraf/ca.pem"
-  # ssl_cert = "/etc/telegraf/cert.pem"
-  # ssl_key = "/etc/telegraf/key.pem"
-  ## If false, skip chain & host verification
-  # insecure_skip_verify = true
 `
 
 func (c *Consul) Description() string {

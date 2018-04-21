@@ -2,7 +2,6 @@ package nagios
 
 import (
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -73,41 +72,23 @@ func (p *NagiosParser) Parse(buf []byte) ([]telegraf.Metric, error) {
 		fieldName := string(perf[0][1])
 		tags := make(map[string]string)
 		if perf[0][3] != nil {
-			str := string(perf[0][3])
-			if str != "" {
-				tags["unit"] = str
-			}
+			tags["unit"] = string(perf[0][3])
 		}
 		fields := make(map[string]interface{})
-		f, err := strconv.ParseFloat(string(perf[0][2]), 64)
-		if err == nil {
-			fields["value"] = f
-		}
+		fields["value"] = perf[0][2]
 		// TODO should we set empty field
 		// if metric if there is no data ?
 		if perf[0][4] != nil {
-			f, err := strconv.ParseFloat(string(perf[0][4]), 64)
-			if err == nil {
-				fields["warning"] = f
-			}
+			fields["warning"] = perf[0][4]
 		}
 		if perf[0][5] != nil {
-			f, err := strconv.ParseFloat(string(perf[0][5]), 64)
-			if err == nil {
-				fields["critical"] = f
-			}
+			fields["critical"] = perf[0][5]
 		}
 		if perf[0][6] != nil {
-			f, err := strconv.ParseFloat(string(perf[0][6]), 64)
-			if err == nil {
-				fields["min"] = f
-			}
+			fields["min"] = perf[0][6]
 		}
 		if perf[0][7] != nil {
-			f, err := strconv.ParseFloat(string(perf[0][7]), 64)
-			if err == nil {
-				fields["max"] = f
-			}
+			fields["max"] = perf[0][7]
 		}
 		// Create metric
 		metric, err := metric.New(fieldName, tags, fields, time.Now().UTC())

@@ -2,10 +2,7 @@ package graphite
 
 import (
 	"fmt"
-	"math"
-	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/influxdata/telegraf"
@@ -14,18 +11,8 @@ import (
 const DEFAULT_TEMPLATE = "host.tags.measurement.field"
 
 var (
-	allowedChars = regexp.MustCompile(`[^a-zA-Z0-9-:._=\p{L}]`)
-	hypenChars   = strings.NewReplacer(
-		"/", "-",
-		"@", "-",
-		"*", "-",
-	)
-	dropChars = strings.NewReplacer(
-		`\`, "",
-		"..", ".",
-	)
-
-	fieldDeleter = strings.NewReplacer(".FIELDNAME", "", "FIELDNAME.", "")
+	fieldDeleter   = strings.NewReplacer(".FIELDNAME", "", "FIELDNAME.", "")
+	sanitizedChars = strings.NewReplacer("/", "-", "@", "-", "*", "-", " ", "_", "..", ".", `\`, "", ")", "_", "(", "_")
 )
 
 type GraphiteSerializer struct {
@@ -37,7 +24,7 @@ func (s *GraphiteSerializer) Serialize(metric telegraf.Metric) ([]byte, error) {
 	out := []byte{}
 
 	// Convert UnixNano to Unix timestamps
-	timestamp := metric.Time().UnixNano() / 1000000000
+	timestamp := metric.UnixNano() / 1000000000
 
 	bucket := SerializeBucketName(metric.Name(), metric.Tags(), s.Template, s.Prefix)
 	if bucket == "" {
@@ -45,47 +32,25 @@ func (s *GraphiteSerializer) Serialize(metric telegraf.Metric) ([]byte, error) {
 	}
 
 	for fieldName, value := range metric.Fields() {
-		fieldValue := formatValue(value)
-		if fieldValue == "" {
+		switch v := value.(type) {
+		case string:
 			continue
+		case bool:
+			if v {
+				value = 1
+			} else {
+				value = 0
+			}
 		}
-		metricString := fmt.Sprintf("%s %s %d\n",
+		metricString := fmt.Sprintf("%s %#v %d\n",
 			// insert "field" section of template
-			sanitize(InsertField(bucket, fieldName)),
-			fieldValue,
+			sanitizedChars.Replace(InsertField(bucket, fieldName)),
+			value,
 			timestamp)
 		point := []byte(metricString)
 		out = append(out, point...)
 	}
 	return out, nil
-}
-
-func formatValue(value interface{}) string {
-	switch v := value.(type) {
-	case string:
-		return ""
-	case bool:
-		if v {
-			return "1"
-		} else {
-			return "0"
-		}
-	case uint64:
-		return strconv.FormatUint(v, 10)
-	case int64:
-		return strconv.FormatInt(v, 10)
-	case float64:
-		if math.IsNaN(v) {
-			return ""
-		}
-
-		if math.IsInf(v, 0) {
-			return ""
-		}
-		return strconv.FormatFloat(v, 'f', -1, 64)
-	}
-
-	return ""
 }
 
 // SerializeBucketName will take the given measurement name and tags and
@@ -177,13 +142,4 @@ func buildTags(tags map[string]string) string {
 		}
 	}
 	return tag_str
-}
-
-func sanitize(value string) string {
-	// Apply special hypenation rules to preserve backwards compatibility
-	value = hypenChars.Replace(value)
-	// Apply rule to drop some chars to preserve backwards compatibility
-	value = dropChars.Replace(value)
-	// Replace any remaining illegal chars
-	return allowedChars.ReplaceAllLiteralString(value, "_")
 }
