@@ -7,18 +7,25 @@
 	 To sync with the parent/upstream:
 
 ```
-git clone git@github.com:Kentik/telegraf.git && \
- cd ./telegraf && \
- git remote add upstream https://github.com/influxdata/telegraf.git
+git clone git@github.com:Kentik/telegraf.git \
+  &&  cd ./telegraf \
+  &&  git remote add upstream https://github.com/influxdata/telegraf.git
 
-git checkout -b "sync_to_master_v${v}"
+git checkout -b pull_upstream_$
 
 git fetch upstream && \
- git merge --no-log --no-ff --no-commit upstream/branch && \
- git reset plugins/outputs/opentsdb/opentsdb.go && \
- git checkout plugins/outputs/opentsdb/opentsdb.go && \
- git reset README.md && \
- git checkout README.md 
+ git merge --no-log --no-ff --no-commit upstream/release-1.6 \
+ && git reset \
+    plugins/outputs/opentsdb/opentsdb.go \
+    plugins/outputs/kentik/* \
+    plugins/aggregators/histogram/histogram.go \
+    README.md \
+ && git checkout \
+    plugins/outputs/opentsdb/opentsdb.go \
+    plugins/outputs/kentik/* \
+    plugins/aggregators/histogram/histogram.go \
+    README.md
+
 ```
 ---
 
