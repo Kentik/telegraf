@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/testutil"
 )
 
@@ -27,27 +28,28 @@ func TestZipkinPlugin(t *testing.T) {
 			datafile:    "testdata/threespans.dat",
 			contentType: "application/x-thrift",
 			want: []testutil.Metric{
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
-						"id":           "8090652509916334619",
-						"parent_id":    "22964302721410078",
+						"id":           "7047c59776af8a1b",
+						"parent_id":    "5195e96239641e",
 						"trace_id":     "22c4fc8ab3669045",
 						"service_name": "trivial",
-						"name":         "Child",
+						"name":         "child",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(53106) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360851331000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
-						"id":             "8090652509916334619",
-						"parent_id":      "22964302721410078",
+						"id":             "7047c59776af8a1b",
+						"parent_id":      "5195e96239641e",
 						"trace_id":       "22c4fc8ab3669045",
-						"name":           "Child",
+						"name":           "child",
 						"service_name":   "trivial",
 						"annotation":     "trivial", //base64: dHJpdmlhbA==
 						"endpoint_host":  "127.0.0.1",
@@ -57,28 +59,30 @@ func TestZipkinPlugin(t *testing.T) {
 						"duration_ns": (time.Duration(53106) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360851331000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
-						"id":           "103618986556047333",
-						"parent_id":    "22964302721410078",
+						"id":           "17020eb55a8bfe5",
+						"parent_id":    "5195e96239641e",
 						"trace_id":     "22c4fc8ab3669045",
 						"service_name": "trivial",
-						"name":         "Child",
+						"name":         "child",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(50410) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360904552000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
-						"id":             "103618986556047333",
-						"parent_id":      "22964302721410078",
+						"id":             "17020eb55a8bfe5",
+						"parent_id":      "5195e96239641e",
 						"trace_id":       "22c4fc8ab3669045",
-						"name":           "Child",
+						"name":           "child",
 						"service_name":   "trivial",
 						"annotation":     "trivial", //base64: dHJpdmlhbA==
 						"endpoint_host":  "127.0.0.1",
@@ -88,85 +92,91 @@ func TestZipkinPlugin(t *testing.T) {
 						"duration_ns": (time.Duration(50410) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360904552000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
-						"id":           "22964302721410078",
-						"parent_id":    "22964302721410078",
+						"id":           "5195e96239641e",
+						"parent_id":    "5195e96239641e",
 						"trace_id":     "22c4fc8ab3669045",
 						"service_name": "trivial",
-						"name":         "Parent",
+						"name":         "parent",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360851318000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
 						"service_name":  "trivial",
 						"annotation":    "Starting child #0",
 						"endpoint_host": "127.0.0.1",
-						"id":            "22964302721410078",
-						"parent_id":     "22964302721410078",
+						"id":            "5195e96239641e",
+						"parent_id":     "5195e96239641e",
 						"trace_id":      "22c4fc8ab3669045",
-						"name":          "Parent",
+						"name":          "parent",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360851318000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
 						"service_name":  "trivial",
 						"annotation":    "Starting child #1",
 						"endpoint_host": "127.0.0.1",
-						"id":            "22964302721410078",
-						"parent_id":     "22964302721410078",
+						"id":            "5195e96239641e",
+						"parent_id":     "5195e96239641e",
 						"trace_id":      "22c4fc8ab3669045",
-						"name":          "Parent",
+						"name":          "parent",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360851318000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
-						"parent_id":     "22964302721410078",
+						"parent_id":     "5195e96239641e",
 						"trace_id":      "22c4fc8ab3669045",
-						"name":          "Parent",
+						"name":          "parent",
 						"service_name":  "trivial",
 						"annotation":    "A Log",
 						"endpoint_host": "127.0.0.1",
-						"id":            "22964302721410078",
+						"id":            "5195e96239641e",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360851318000).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
 						"trace_id":       "22c4fc8ab3669045",
 						"service_name":   "trivial",
 						"annotation":     "trivial", //base64: dHJpdmlhbA==
 						"annotation_key": "lc",
-						"id":             "22964302721410078",
-						"parent_id":      "22964302721410078",
-						"name":           "Parent",
+						"id":             "5195e96239641e",
+						"parent_id":      "5195e96239641e",
+						"name":           "parent",
 						"endpoint_host":  "127.0.0.1",
 					},
 					Fields: map[string]interface{}{
 						"duration_ns": (time.Duration(103680) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1498688360851318000).UTC(),
+					Type: telegraf.Untyped,
 				},
 			},
 			wantErr: false,
@@ -176,11 +186,11 @@ func TestZipkinPlugin(t *testing.T) {
 			datafile:    "testdata/distributed_trace_sample.dat",
 			contentType: "application/x-thrift",
 			want: []testutil.Metric{
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
-						"id":           "6802735349851856000",
-						"parent_id":    "6802735349851856000",
+						"id":           "5e682bc21ce99c80",
+						"parent_id":    "5e682bc21ce99c80",
 						"trace_id":     "5e682bc21ce99c80",
 						"service_name": "go-zipkin-testclient",
 						"name":         "main.dud",
@@ -189,14 +199,15 @@ func TestZipkinPlugin(t *testing.T) {
 						"duration_ns": (time.Duration(1) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1433330263415871*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
 						"annotation":    "cs",
 						"endpoint_host": "0.0.0.0:9410",
-						"id":            "6802735349851856000",
-						"parent_id":     "6802735349851856000",
+						"id":            "5e682bc21ce99c80",
+						"parent_id":     "5e682bc21ce99c80",
 						"trace_id":      "5e682bc21ce99c80",
 						"name":          "main.dud",
 						"service_name":  "go-zipkin-testclient",
@@ -205,14 +216,15 @@ func TestZipkinPlugin(t *testing.T) {
 						"duration_ns": (time.Duration(1) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1433330263415871*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
 				},
-				testutil.Metric{
+				{
 					Measurement: "zipkin",
 					Tags: map[string]string{
 						"annotation":    "cr",
 						"endpoint_host": "0.0.0.0:9410",
-						"id":            "6802735349851856000",
-						"parent_id":     "6802735349851856000",
+						"id":            "5e682bc21ce99c80",
+						"parent_id":     "5e682bc21ce99c80",
 						"trace_id":      "5e682bc21ce99c80",
 						"name":          "main.dud",
 						"service_name":  "go-zipkin-testclient",
@@ -221,6 +233,359 @@ func TestZipkinPlugin(t *testing.T) {
 						"duration_ns": (time.Duration(1) * time.Microsecond).Nanoseconds(),
 					},
 					Time: time.Unix(0, 1433330263415871*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+			},
+		},
+		{
+			name:        "JSON rather than thrift",
+			datafile:    "testdata/json/brave-tracer-example.json",
+			contentType: "application/json",
+			want: []testutil.Metric{
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"id":           "b26412d1ac16767d",
+						"name":         "http:/hi2",
+						"parent_id":    "7312f822d43d0fd8",
+						"service_name": "test",
+						"trace_id":     "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(3000000),
+					},
+					Time: time.Unix(0, 1503031538791000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":    "sr",
+						"endpoint_host": "192.168.0.8:8010",
+						"id":            "b26412d1ac16767d",
+						"name":          "http:/hi2",
+						"parent_id":     "7312f822d43d0fd8",
+						"service_name":  "test",
+						"trace_id":      "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(3000000),
+					},
+					Time: time.Unix(0, 1503031538791000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":    "ss",
+						"endpoint_host": "192.168.0.8:8010",
+						"id":            "b26412d1ac16767d",
+						"name":          "http:/hi2",
+						"parent_id":     "7312f822d43d0fd8",
+						"service_name":  "test",
+						"trace_id":      "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(3000000),
+					},
+					Time: time.Unix(0, 1503031538791000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "Demo2Application",
+						"annotation_key": "mvc.controller.class",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(3000000),
+					},
+					Time: time.Unix(0, 1503031538791000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "hi2",
+						"annotation_key": "mvc.controller.method",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(3000000),
+					},
+					Time: time.Unix(0, 1503031538791000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "192.168.0.8:test:8010",
+						"annotation_key": "spring.instance_id",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(3000000),
+					},
+					Time: time.Unix(0, 1503031538791000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"id":           "b26412d1ac16767d",
+						"name":         "http:/hi2",
+						"parent_id":    "7312f822d43d0fd8",
+						"service_name": "test",
+						"trace_id":     "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":    "cs",
+						"endpoint_host": "192.168.0.8:8010",
+						"id":            "b26412d1ac16767d",
+						"name":          "http:/hi2",
+						"parent_id":     "7312f822d43d0fd8",
+						"service_name":  "test",
+						"trace_id":      "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":    "cr",
+						"endpoint_host": "192.168.0.8:8010",
+						"id":            "b26412d1ac16767d",
+						"name":          "http:/hi2",
+						"parent_id":     "7312f822d43d0fd8",
+						"service_name":  "test",
+						"trace_id":      "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "localhost",
+						"annotation_key": "http.host",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "GET",
+						"annotation_key": "http.method",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "/hi2",
+						"annotation_key": "http.path",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "http://localhost:8010/hi2",
+						"annotation_key": "http.url",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "192.168.0.8:test:8010",
+						"annotation_key": "spring.instance_id",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "b26412d1ac16767d",
+						"name":           "http:/hi2",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(10000000),
+					},
+					Time: time.Unix(0, 1503031538786000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"id":           "7312f822d43d0fd8",
+						"name":         "http:/hi",
+						"parent_id":    "7312f822d43d0fd8",
+						"service_name": "test",
+						"trace_id":     "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(23393000),
+					},
+					Time: time.Unix(0, 1503031538778000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":    "sr",
+						"endpoint_host": "192.168.0.8:8010",
+						"id":            "7312f822d43d0fd8",
+						"name":          "http:/hi",
+						"parent_id":     "7312f822d43d0fd8",
+						"service_name":  "test",
+						"trace_id":      "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(23393000),
+					},
+					Time: time.Unix(0, 1503031538778000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":    "ss",
+						"endpoint_host": "192.168.0.8:8010",
+						"id":            "7312f822d43d0fd8",
+						"name":          "http:/hi",
+						"parent_id":     "7312f822d43d0fd8",
+						"service_name":  "test",
+						"trace_id":      "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(23393000),
+					},
+					Time: time.Unix(0, 1503031538778000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "Demo2Application",
+						"annotation_key": "mvc.controller.class",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "7312f822d43d0fd8",
+						"name":           "http:/hi",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(23393000),
+					},
+					Time: time.Unix(0, 1503031538778000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "hi",
+						"annotation_key": "mvc.controller.method",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "7312f822d43d0fd8",
+						"name":           "http:/hi",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(23393000),
+					},
+					Time: time.Unix(0, 1503031538778000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
+				},
+				{
+					Measurement: "zipkin",
+					Tags: map[string]string{
+						"annotation":     "192.168.0.8:test:8010",
+						"annotation_key": "spring.instance_id",
+						"endpoint_host":  "192.168.0.8:8010",
+						"id":             "7312f822d43d0fd8",
+						"name":           "http:/hi",
+						"parent_id":      "7312f822d43d0fd8",
+						"service_name":   "test",
+						"trace_id":       "7312f822d43d0fd8",
+					},
+					Fields: map[string]interface{}{
+						"duration_ns": int64(23393000),
+					},
+					Time: time.Unix(0, 1503031538778000*int64(time.Microsecond)).UTC(),
+					Type: telegraf.Untyped,
 				},
 			},
 		},
@@ -557,7 +922,12 @@ func TestZipkinPlugin(t *testing.T) {
 		},
 	}
 
+	// Workaround for Go 1.8
+	// https://github.com/golang/go/issues/18806
+	DefaultNetwork = "tcp4"
+
 	z := &Zipkin{
+		Log:  testutil.Logger{},
 		Path: "/api/v1/spans",
 		Port: 0,
 	}

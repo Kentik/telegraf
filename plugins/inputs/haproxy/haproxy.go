@@ -14,27 +14,20 @@ import (
 	"time"
 
 	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/internal"
+	"github.com/influxdata/telegraf/plugins/common/tls"
 	"github.com/influxdata/telegraf/plugins/inputs"
 )
 
 //CSV format: https://cbonte.github.io/haproxy-dconv/1.5/configuration.html#9.1
 
 type haproxy struct {
-	Servers []string
+	Servers        []string
+	KeepFieldNames bool
+	Username       string
+	Password       string
+	tls.ClientConfig
 
 	client *http.Client
-
-	KeepFieldNames bool
-
-	// Path to CA file
-	SSLCA string `toml:"ssl_ca"`
-	// Path to host cert file
-	SSLCert string `toml:"ssl_cert"`
-	// Path to cert key file
-	SSLKey string `toml:"ssl_key"`
-	// Use SSL but skip chain & host verification
-	InsecureSkipVerify bool
 }
 
 var sampleConfig = `
@@ -46,6 +39,10 @@ var sampleConfig = `
   ## If no servers are specified, then default to 127.0.0.1:1936/haproxy?stats
   servers = ["http://myhaproxy.com:1936/haproxy?stats"]
 
+  ## Credentials for basic HTTP authentication
+  # username = "admin"
+  # password = "admin"
+
   ## You can also use local socket with standard wildcard globbing.
   ## Server address not starting with 'http' will be treated as a possible
   ## socket, so both examples below are valid.
@@ -54,13 +51,13 @@ var sampleConfig = `
   ## By default, some of the fields are renamed from what haproxy calls them.
   ## Setting this option to true results in the plugin keeping the original
   ## field names.
-  # keep_field_names = true
+  # keep_field_names = false
 
-  ## Optional SSL Config
-  # ssl_ca = "/etc/telegraf/ca.pem"
-  # ssl_cert = "/etc/telegraf/cert.pem"
-  # ssl_key = "/etc/telegraf/key.pem"
-  ## Use SSL but skip chain & host verification
+  ## Optional TLS Config
+  # tls_ca = "/etc/telegraf/ca.pem"
+  # tls_cert = "/etc/telegraf/cert.pem"
+  # tls_key = "/etc/telegraf/key.pem"
+  ## Use TLS but skip chain & host verification
   # insecure_skip_verify = false
 `
 
@@ -144,8 +141,7 @@ func (g *haproxy) gatherServer(addr string, acc telegraf.Accumulator) error {
 	}
 
 	if g.client == nil {
-		tlsCfg, err := internal.GetTLSConfig(
-			g.SSLCert, g.SSLKey, g.SSLCA, g.InsecureSkipVerify)
+		tlsCfg, err := g.ClientConfig.TLSConfig()
 		if err != nil {
 			return err
 		}
@@ -166,26 +162,36 @@ func (g *haproxy) gatherServer(addr string, acc telegraf.Accumulator) error {
 
 	u, err := url.Parse(addr)
 	if err != nil {
-		return fmt.Errorf("Unable parse server address '%s': %s", addr, err)
+		return fmt.Errorf("unable parse server address '%s': %s", addr, err)
 	}
 
 	req, err := http.NewRequest("GET", addr, nil)
+	if err != nil {
+		return fmt.Errorf("unable to create new request '%s': %s", addr, err)
+	}
 	if u.User != nil {
 		p, _ := u.User.Password()
 		req.SetBasicAuth(u.User.Username(), p)
+		u.User = &url.Userinfo{}
+		addr = u.String()
+	}
+
+	if g.Username != "" || g.Password != "" {
+		req.SetBasicAuth(g.Username, g.Password)
 	}
 
 	res, err := g.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Unable to connect to haproxy server '%s': %s", addr, err)
+		return fmt.Errorf("unable to connect to haproxy server '%s': %s", addr, err)
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return fmt.Errorf("Unable to get valid stat result from '%s', http response code : %d", addr, res.StatusCode)
+		return fmt.Errorf("unable to get valid stat result from '%s', http response code : %d", addr, res.StatusCode)
 	}
 
 	if err := g.importCsvResult(res.Body, acc, u.Host); err != nil {
-		return fmt.Errorf("Unable to parse stat result from '%s': %s", addr, err)
+		return fmt.Errorf("unable to parse stat result from '%s': %s", addr, err)
 	}
 
 	return nil
@@ -268,7 +274,7 @@ func (g *haproxy) importCsvResult(r io.Reader, acc telegraf.Accumulator, host st
 				if err != nil {
 					return fmt.Errorf("unable to parse type value '%s'", v)
 				}
-				if int(vi) >= len(typeNames) {
+				if vi >= int64(len(typeNames)) {
 					return fmt.Errorf("received unknown type value: %d", vi)
 				}
 				tags[fieldName] = typeNames[vi]

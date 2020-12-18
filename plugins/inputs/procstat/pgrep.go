@@ -6,16 +6,11 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/influxdata/telegraf/internal"
 )
 
-type PIDFinder interface {
-	PidFile(path string) ([]PID, error)
-	Pattern(pattern string) ([]PID, error)
-	Uid(user string) ([]PID, error)
-	FullPattern(path string) ([]PID, error)
-}
-
-// Implemention of PIDGatherer that execs pgrep to find processes
+// Implementation of PIDGatherer that execs pgrep to find processes
 type Pgrep struct {
 	path string
 }
@@ -35,7 +30,7 @@ func (pg *Pgrep) PidFile(path string) ([]PID, error) {
 		return pids, fmt.Errorf("Failed to read pidfile '%s'. Error: '%s'",
 			path, err)
 	}
-	pid, err := strconv.Atoi(strings.TrimSpace(string(pidString)))
+	pid, err := strconv.ParseInt(strings.TrimSpace(string(pidString)), 10, 32)
 	if err != nil {
 		return pids, err
 	}
@@ -69,6 +64,12 @@ func find(path string, args []string) ([]PID, error) {
 
 func run(path string, args []string) (string, error) {
 	out, err := exec.Command(path, args...).Output()
+
+	//if exit code 1, ie no processes found, do not return error
+	if i, _ := internal.ExitStatus(err); i == 1 {
+		return "", nil
+	}
+
 	if err != nil {
 		return "", fmt.Errorf("Error running %s: %s", path, err)
 	}
@@ -79,13 +80,11 @@ func parseOutput(out string) ([]PID, error) {
 	pids := []PID{}
 	fields := strings.Fields(out)
 	for _, field := range fields {
-		pid, err := strconv.Atoi(field)
+		pid, err := strconv.ParseInt(field, 10, 32)
 		if err != nil {
 			return nil, err
 		}
-		if err == nil {
-			pids = append(pids, PID(pid))
-		}
+		pids = append(pids, PID(pid))
 	}
 	return pids, nil
 }

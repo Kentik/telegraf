@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -59,6 +60,10 @@ type Jolokia struct {
 }
 
 const sampleConfig = `
+  # DEPRECATED: the jolokia plugin has been deprecated in favor of the
+  # jolokia2 plugin
+  # see https://github.com/influxdata/telegraf/tree/master/plugins/inputs/jolokia2
+
   ## This is the context root used to compose the jolokia url
   ## NOTE that Jolokia requires a trailing slash at the end of the context root
   ## NOTE that your jolokia security policy must allow for POST requests.
@@ -229,9 +234,11 @@ func (j *Jolokia) prepareRequest(server Server, metrics []Metric) (*http.Request
 	}
 
 	requestBody, err := json.Marshal(bulkBodyContent)
+	if err != nil {
+		return nil, err
+	}
 
 	req, err := http.NewRequest("POST", jolokiaUrl.String(), bytes.NewBuffer(requestBody))
-
 	if err != nil {
 		return nil, err
 	}
@@ -254,6 +261,10 @@ func (j *Jolokia) extractValues(measurement string, value interface{}, fields ma
 func (j *Jolokia) Gather(acc telegraf.Accumulator) error {
 
 	if j.jClient == nil {
+		log.Println("W! DEPRECATED: the jolokia plugin has been deprecated " +
+			"in favor of the jolokia2 plugin " +
+			"(https://github.com/influxdata/telegraf/tree/master/plugins/inputs/jolokia2)")
+
 		tr := &http.Transport{ResponseHeaderTimeout: j.ResponseHeaderTimeout.Duration}
 		j.jClient = &JolokiaClientImpl{&http.Client{
 			Transport: tr,

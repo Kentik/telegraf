@@ -1,18 +1,18 @@
-# Telegraf Plugin: Nginx
+# Nginx Input Plugin
 
 ### Configuration:
 
-```
+```toml
 # Read Nginx's basic status information (ngx_http_stub_status_module)
 [[inputs.nginx]]
   ## An array of Nginx stub_status URI to gather stats.
   urls = ["http://localhost/server_status"]
 
-  ## Optional SSL Config
-  # ssl_ca = "/etc/telegraf/ca.pem"
-  # ssl_cert = "/etc/telegraf/cert.pem"
-  # ssl_key = "/etc/telegraf/key.pem"
-  ## Use SSL but skip chain & host verification
+  ## Optional TLS Config
+  # tls_ca = "/etc/telegraf/ca.pem"
+  # tls_cert = "/etc/telegraf/cert.pem"
+  # tls_key = "/etc/telegraf/key.pem"
+  ## Use TLS but skip chain & host verification
   # insecure_skip_verify = false
 
   ## HTTP response timeout (default: 5s)
@@ -39,14 +39,14 @@
 ### Example Output:
 
 Using this configuration:
-```
+```toml
 [[inputs.nginx]]
   ## An array of Nginx stub_status URI to gather stats.
   urls = ["http://localhost/status"]
 ```
 
 When run with:
-```
+```sh
 ./telegraf --config telegraf.conf --input-filter nginx --test
 ```
 
