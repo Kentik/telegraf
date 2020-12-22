@@ -1,14 +1,11 @@
 # Fail2ban Input Plugin
 
-The fail2ban plugin gathers the count of failed and banned ip addresses using [fail2ban](https://www.fail2ban.org).
 The fail2ban plugin gathers the count of failed and banned ip addresses using
 [fail2ban](https://www.fail2ban.org).
 
 This plugin runs the `fail2ban-client` command which generally requires root access.
 Acquiring the required permissions can be done using several methods:
 
-- Use sudo run fail2ban-client.
-- Run telegraf as root. (not recommended)
 - [Use sudo](#using-sudo) run fail2ban-client.
 - Run telegraf as root. (not recommended)
 
@@ -25,9 +22,6 @@ Acquiring the required permissions can be done using several methods:
 
 Make sure to set `use_sudo = true` in your configuration file.
 
-``` sudo
-telegraf ALL=(root) NOEXEC: NOPASSWD: /usr/bin/fail2ban-client status, /usr/bin/fail2ban-client status *
-```
 You will also need to update your sudoers file.  It is recommended to modify a
 file in the `/etc/sudoers.d` directory using `visudo`:
 
@@ -35,11 +29,6 @@ file in the `/etc/sudoers.d` directory using `visudo`:
 $ sudo visudo -f /etc/sudoers.d/telegraf
 ```
 
-``` toml
-# Read metrics from fail2ban.
-[[inputs.fail2ban]]
-  ## Use sudo to run fail2ban-client
-  use_sudo = false
 Add the following lines to the file, these commands allow the `telegraf` user
 to call `fail2ban-client` without needing to provide a password and disables
 logging of the call in the auth.log.  Consult `man 8 visudo` and `man 5
@@ -59,10 +48,6 @@ Defaults!FAIL2BAN !logfile, !syslog, !pam_session
     - failed (integer, count)
     - banned (integer, count)
 
-- All measurements have the following tags:
-  - jail
-
-### Example Output:
 ### Example Output
 
 ```

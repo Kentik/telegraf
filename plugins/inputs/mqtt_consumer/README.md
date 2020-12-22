@@ -7,13 +7,6 @@ and creates metrics using one of the supported [input data formats][].
 
 ```toml
 [[inputs.mqtt_consumer]]
-  ## MQTT broker URLs to be used. The format should be scheme://host:port,
-  ## schema can be tcp, ssl, or ws.
-  servers = ["tcp://localhost:1883"]
-  ## MQTT QoS, must be 0, 1, or 2
-  qos = 0
-  ## Connection timeout for initial connection in seconds
-  connection_timeout = "30s"
   ## Broker URLs for the MQTT server or cluster.  To connect to multiple
   ## clusters or standalone servers, use a seperate plugin instance.
   ##   example: servers = ["tcp://localhost:1883"]

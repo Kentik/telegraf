@@ -74,15 +74,8 @@ Telegraf shares the same [minimum requirements][] as Go:
 
 ## Installation:
 
-You can either download the binaries directly from the
-[downloads](https://www.influxdata.com/downloads) page.
-
-A few alternate installs are available here as well:
-
-### FreeBSD tarball:
-
-Latest:
-* https://dl.influxdata.com/telegraf/releases/telegraf-VERSION_freebsd_amd64.tar.gz
+You can download the binaries directly from the [downloads](https://www.influxdata.com/downloads) page
+or from the [releases](https://github.com/influxdata/telegraf/releases) section.
 
 ### Ansible Role:
 
@@ -90,15 +83,6 @@ Ansible role: https://github.com/rossmcdonald/telegraf
 
 ### From Source:
 
-Telegraf manages dependencies via [gdm](https://github.com/sparrc/gdm),
-which gets installed via the Makefile
-if you don't have it already. You also must build with golang version 1.8+.
-
-1. [Install Go](https://golang.org/doc/install)
-2. [Setup your GOPATH](https://golang.org/doc/code.html#GOPATH)
-3. Run `go get github.com/influxdata/telegraf`
-4. Run `cd $GOPATH/src/github.com/influxdata/telegraf`
-5. Run `make`
 Telegraf requires Go version 1.13 or newer, the Makefile requires GNU make.
 
 1. [Install Go](https://golang.org/doc/install) >=1.13 (1.15 recommended)
@@ -160,16 +144,9 @@ telegraf --help
 telegraf config > telegraf.conf
 ```
 
-#### Generate config with only cpu input & influxdb output plugins defined
+#### Generate config with only cpu input & influxdb output plugins defined:
 
 ```
-telegraf --input-filter cpu --output-filter influxdb config
-```
-
-#### Run a single telegraf collection, outputing metrics to stdout
-
-```
-telegraf --config telegraf.conf -test
 telegraf --section-filter agent:inputs:outputs --input-filter cpu --output-filter influxdb config
 ```
 
@@ -179,16 +156,15 @@ telegraf --section-filter agent:inputs:outputs --input-filter cpu --output-filte
 telegraf --config telegraf.conf --test
 ```
 
-#### Run telegraf with all plugins defined in config file
+#### Run telegraf with all plugins defined in config file:
 
 ```
 telegraf --config telegraf.conf
 ```
 
-#### Run telegraf, enabling the cpu & memory input, and influxdb output plugins
+#### Run telegraf, enabling the cpu & memory input, and influxdb output plugins:
 
 ```
-telegraf --config telegraf.conf -input-filter cpu:mem -output-filter influxdb
 telegraf --config telegraf.conf --input-filter cpu:mem --output-filter influxdb
 ```
 
@@ -244,7 +220,6 @@ For documentation on the latest development code see the [documentation index][d
 * [ethtool](./plugins/inputs/ethtool)
 * [eventhub_consumer](./plugins/inputs/eventhub_consumer) (Azure Event Hubs \& Azure IoT Hub)
 * [exec](./plugins/inputs/exec) (generic executable plugin, support JSON, influx, graphite and nagios)
-* [filestat](./plugins/inputs/filestat)
 * [execd](./plugins/inputs/execd) (generic executable "daemon" processes)
 * [fail2ban](./plugins/inputs/fail2ban)
 * [fibaro](./plugins/inputs/fibaro)
@@ -351,6 +326,7 @@ For documentation on the latest development code see the [documentation index][d
 * [redis](./plugins/inputs/redis)
 * [rethinkdb](./plugins/inputs/rethinkdb)
 * [riak](./plugins/inputs/riak)
+* [salesforce](./plugins/inputs/salesforce)
 * [sensors](./plugins/inputs/sensors)
 * [sflow](./plugins/inputs/sflow)
 * [smart](./plugins/inputs/smart)
@@ -360,12 +336,6 @@ For documentation on the latest development code see the [documentation index][d
 * [socket_listener](./plugins/inputs/socket_listener)
 * [solr](./plugins/inputs/solr)
 * [sql server](./plugins/inputs/sqlserver) (microsoft)
-* [twemproxy](./plugins/inputs/twemproxy)
-* [varnish](./plugins/inputs/varnish)
-* [zfs](./plugins/inputs/zfs)
-* [zookeeper](./plugins/inputs/zookeeper)
-* [win_perf_counters](./plugins/inputs/win_perf_counters) (windows performance counters)
-* [win_services](./plugins/inputs/win_services)
 * [stackdriver](./plugins/inputs/stackdriver) (Google Cloud Monitoring)
 * [statsd](./plugins/inputs/statsd)
 * [suricata](./plugins/inputs/suricata)
@@ -458,7 +428,6 @@ For documentation on the latest development code see the [documentation index][d
 
 ## Aggregator Plugins
 
-* [minmax](./plugins/aggregators/minmax)
 * [basicstats](./plugins/aggregators/basicstats)
 * [final](./plugins/aggregators/final)
 * [histogram](./plugins/aggregators/histogram)

@@ -1250,9 +1250,6 @@
 
 ### New Serializers
 
-## v1.4 [unreleased]
-## v1.4.4 [2017-11-08]
-
 - [splunkmetric](/plugins/serializers/splunkmetric/README.md) - Contributed by @ronnocol
 
 ### Features
@@ -1783,7 +1780,6 @@
 
 ## v1.4.3 [2017-10-25]
 
-### Bugfixes
 ### Bug Fixes
 
 - [#3327](https://github.com/influxdata/telegraf/issues/3327): Fix container name filters in docker input.
@@ -1800,7 +1796,6 @@
 
 ## v1.4.2 [2017-10-10]
 
-### Bugfixes
 ### Bug Fixes
 
 - [#3259](https://github.com/influxdata/telegraf/issues/3259): Fix error if int larger than 32-bit in /proc/vmstat.
@@ -1815,7 +1810,6 @@
 
 ## v1.4.1 [2017-09-26]
 
-### Bugfixes
 ### Bug Fixes
 
 - [#3167](https://github.com/influxdata/telegraf/issues/3167): Fix MQTT input exits if Broker is not available on startup.
