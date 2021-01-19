@@ -1,6 +1,9 @@
 # Telegraf [![Circle CI](https://circleci.com/gh/influxdata/telegraf.svg?style=svg)](https://circleci.com/gh/influxdata/telegraf) [![Docker pulls](https://img.shields.io/docker/pulls/library/telegraf.svg)](https://hub.docker.com/_/telegraf/)
 
 ---
+* **DEPRECATED**
+Please use https://github.com/kentik/kentik-telegraf-plugins
+
 !WARN! - This is a kentik fork of the telegraf library which was made to accomodate for our 
 	 custom go-metrics library. This fork has a modified opentsdb.go output plugin file
          which allows the user to exclude field keys from sanitization by telegraf ("value"). 
